@@ -1,2 +1,4 @@
 # toolkit
-我平时经常使用到的库，其中代码不仅仅包括自己写的，也包括其他人写的，具体的鸣谢请查看README.md
+这里记录着我平时经常使用的库，这里的库不仅仅是我自己写的，也有收集别人写的。
+
+在这里特别感谢[panjf2000](https://github.com/panjf2000/gnet/commits?author=panjf2000) 

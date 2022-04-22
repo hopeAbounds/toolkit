@@ -7,8 +7,9 @@ import (
 
 // LKQueue 无边界的cas锁
 type LKQueue struct {
-	head unsafe.Pointer
-	tail unsafe.Pointer
+	head   unsafe.Pointer
+	tail   unsafe.Pointer
+	length int32
 }
 
 type node struct {
@@ -32,6 +33,7 @@ func (q *LKQueue) Enqueue(v interface{}) {
 			if next == nil {
 				if cas(&tail.next, next, n) {
 					cas(&q.tail, tail, n) // Enqueue is done.  try to swing tail to the inserted node
+					atomic.AddInt32(&q.length, 1)
 					return
 				}
 			} else { // tail was not pointing to the last node
@@ -55,15 +57,21 @@ func (q *LKQueue) Dequeue() interface{} {
 				}
 				// tail is falling behind.  try to advance it
 				cas(&q.tail, tail, next)
+
 			} else {
 				// read value before CAS otherwise another dequeue might free the next node
 				v := next.value
 				if cas(&q.head, head, next) {
+					atomic.AddInt32(&q.length, -1)
 					return v // Dequeue is done.  return
 				}
 			}
 		}
 	}
+}
+
+func (q *LKQueue) IsEmpty() bool {
+	return atomic.LoadInt32(&q.length) == 0
 }
 
 func load(p *unsafe.Pointer) (n *node) {
